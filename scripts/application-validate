@@ -132,24 +132,32 @@ if ((stable_checks != 3)); then
   exit 1
 fi
 
-recommendation_images="$(
-  kubectl \
-    --context "${cluster_context}" \
-    get pods \
-    --namespace "${workload_namespace}" \
-    --selector app.kubernetes.io/component=recommendation \
-    --output jsonpath='{.items[*].spec.containers[*].image}'
-)"
+custom_services=(recommendation ad product-catalog)
+service_labels=("Recommendation" "Ad" "Product Catalog")
+service_images=()
 
-if [[ -z "${recommendation_images}" ]]; then
-  echo "Recommendation workload image could not be found." >&2
-  exit 1
-fi
+for service in "${custom_services[@]}"; do
+  images="$(
+    kubectl \
+      --context "${cluster_context}" \
+      get pods \
+      --namespace "${workload_namespace}" \
+      --selector "app.kubernetes.io/component=${service}" \
+      --output jsonpath='{.items[*].spec.containers[*].image}'
+  )"
 
-if [[ "${recommendation_images}" == *".dkr.ecr."* ]]; then
-  echo "Local Recommendation workload unexpectedly references Amazon ECR." >&2
-  exit 1
-fi
+  if [[ -z "${images}" ]]; then
+    echo "${service} workload image could not be found." >&2
+    exit 1
+  fi
+
+  if [[ "${images}" == *".dkr.ecr."* ]]; then
+    echo "kind ${service} workload unexpectedly references Amazon ECR." >&2
+    exit 1
+  fi
+
+  service_images+=("${images}")
+done
 
 echo "Milestone 5 application validation passed."
 echo
@@ -168,4 +176,6 @@ kubectl \
   get pods \
   --namespace "${workload_namespace}"
 echo
-echo "Recommendation image: ${recommendation_images}"
+for index in "${!custom_services[@]}"; do
+  printf '%s image: %s\n' "${service_labels[index]}" "${service_images[index]}"
+done

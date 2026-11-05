@@ -112,7 +112,7 @@ make observability-validate
 |---|---|
 | `validate` | Cluster readiness |
 | `platform-validate` | Installed platform components |
-| `application-validate` | Argo CD sync/health, Gateway, deployments, and image source |
+| `application-validate` | Argo CD sync/health, Gateway, deployments, and Recommendation/Ad/Product Catalog image sources |
 | `routing-validate` | Route attachment, backend references, demo response, and hostname isolation |
 | `recommendation-validate` | Deployed image format/source, rollout, and Recommendation API data |
 | `observability-validate` | Backend rollouts, OOM status, actual metrics/traces, and Grafana health/datasources |
