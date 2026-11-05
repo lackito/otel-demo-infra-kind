@@ -171,7 +171,9 @@ In `otel-demo-apps`, configure these repository secrets for release publishing:
 | Secret | Required access |
 |---|---|
 | `KIND_GITOPS_REPOSITORY_TOKEN` | Fine-grained token with Contents read/write for `otel-demo-gitops-kind` |
-| `GHCR_PAT` | Classic token owned by the publishing account with `write:packages` |
+
+GHCR publication uses the automatic `GITHUB_TOKEN` with workflow
+`packages: write`; it does not require a registry PAT secret.
 
 If the GitOps repository was created after the token, add it to the token's
 selected repositories. These credentials are needed by CI, not for anonymous
