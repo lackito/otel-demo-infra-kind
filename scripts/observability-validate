@@ -2,8 +2,8 @@
 
 set -euo pipefail
 
-cluster_context="kind-otel-demo-kind"
-cluster_name="otel-demo-kind"
+cluster_context="kind-otel-demo"
+cluster_name="otel-demo"
 workload_namespace="opentelemetry-demo"
 demo_url="http://otel-demo.localhost"
 soak_seconds="${OBSERVABILITY_SOAK_SECONDS:-0}"

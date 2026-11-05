@@ -7,7 +7,7 @@
 
 Start the Docker-compatible runtime, then run `make prerequisites`.
 If the named cluster exists but its context is missing, `make cluster-create`
-restores it. Select `kind-otel-demo-kind` for interactive kubectl commands.
+restores it. Select `kind-otel-demo` for interactive kubectl commands.
 Use `make validate` before checking platform or workload health.
 
 ## Application registration fails because the CRD is missing
@@ -37,8 +37,8 @@ not as a routine fresh-cluster step.
 Check the deployed image and pod events with the explicit local context:
 
 ```bash
-kubectl --context kind-otel-demo-kind -n opentelemetry-demo get pods
-kubectl --context kind-otel-demo-kind -n opentelemetry-demo get events --sort-by=.lastTimestamp
+kubectl --context kind-otel-demo -n opentelemetry-demo get pods
+kubectl --context kind-otel-demo -n opentelemetry-demo get events --sort-by=.lastTimestamp
 ```
 
 For GHCR, confirm that the package is public and the referenced full-SHA tag
@@ -65,7 +65,7 @@ Use HTTP, not HTTPS; host port 443 alone does not configure a TLS listener.
 To isolate application health from Gateway routing:
 
 ```bash
-kubectl --context kind-otel-demo-kind -n opentelemetry-demo \
+kubectl --context kind-otel-demo -n opentelemetry-demo \
   port-forward service/frontend-proxy 18080:8080
 ```
 

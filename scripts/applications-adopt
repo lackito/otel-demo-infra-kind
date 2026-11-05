@@ -5,7 +5,7 @@ set -euo pipefail
 repository_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 platform_directory="${repository_root}/terraform/platform"
 applications_directory="${repository_root}/terraform/applications"
-cluster_context="kind-otel-demo-kind"
+cluster_context="kind-otel-demo"
 application_address="module.argocd_application.kubernetes_manifest.otel_demo"
 legacy_address="module.argocd_application.terraform_data.this"
 import_id="apiVersion=argoproj.io/v1alpha1,kind=Application,namespace=argocd,name=otel-demo-kind"
