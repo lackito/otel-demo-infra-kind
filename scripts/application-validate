@@ -2,7 +2,7 @@
 
 set -euo pipefail
 
-cluster_context="kind-otel-demo-kind"
+cluster_context="kind-otel-demo"
 application_name="otel-demo-kind"
 application_namespace="argocd"
 workload_namespace="opentelemetry-demo"

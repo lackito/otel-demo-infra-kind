@@ -3,7 +3,7 @@
 [Overview](../README.md) · [Architecture](ARCHITECTURE.md) · [Troubleshooting](TROUBLESHOOTING.md)
 
 Run commands from `otel-demo-infra-kind` unless another repository is named.
-Repository scripts explicitly target `kind-otel-demo-kind` in `~/.kube/config`.
+Repository scripts explicitly target `kind-otel-demo` in `~/.kube/config`.
 
 ## 1. Check prerequisites
 
@@ -26,11 +26,11 @@ needs a matching image, such as the direct-load path below.
 ## 2. Create or resume the environment
 
 Use the output of `kind get clusters` to choose **one** path below.
-`otel-demo-kind` here means the kind cluster name, not the repository folder.
+`otel-demo` here means the kind cluster name, not the repository folder.
 
 ### A. No local cluster exists
 
-If the output says `No kind clusters found`, or does not list `otel-demo-kind`,
+If the output says `No kind clusters found`, or does not list `otel-demo`,
 create the cluster and check it:
 
 ```bash
@@ -43,7 +43,7 @@ below. Do not run `platform-validate` before installing the platform.
 
 ### B. The local cluster already exists
 
-If the output lists `otel-demo-kind`, check the cluster:
+If the output lists `otel-demo`, check the cluster:
 
 ```bash
 make cluster-create
@@ -93,7 +93,7 @@ Then continue to [Validate the deployment](#3-validate-the-deployment).
 For manual inspection, explicitly select the local context:
 
 ```bash
-kubectl config use-context kind-otel-demo-kind
+kubectl config use-context kind-otel-demo
 kubectl get nodes
 kubectl get pods --all-namespaces
 helm list --all-namespaces
@@ -146,7 +146,7 @@ Telemetry storage is ephemeral, so workload recreation can discard history.
 For Argo CD, retrieve the initial admin password locally:
 
 ```bash
-kubectl --context kind-otel-demo-kind -n argocd \
+kubectl --context kind-otel-demo -n argocd \
   get secret argocd-initial-admin-secret \
   -o jsonpath='{.data.password}' | base64 --decode
 echo
@@ -155,7 +155,7 @@ echo
 Keep this running in a separate terminal:
 
 ```bash
-kubectl --context kind-otel-demo-kind -n argocd \
+kubectl --context kind-otel-demo -n argocd \
   port-forward service/argocd-server 8080:443
 ```
 

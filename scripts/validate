@@ -2,8 +2,8 @@
 
 set -euo pipefail
 
-cluster_name="otel-demo-kind"
-expected_context="kind-otel-demo-kind"
+cluster_name="otel-demo"
+expected_context="kind-otel-demo"
 
 cluster_exists="false"
 

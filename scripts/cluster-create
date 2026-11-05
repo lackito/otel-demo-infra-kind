@@ -3,7 +3,7 @@
 set -euo pipefail
 
 repository_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-cluster_name="otel-demo-kind"
+cluster_name="otel-demo"
 cluster_context="kind-${cluster_name}"
 cluster_config="${repository_root}/kind/cluster.yaml"
 kubeconfig_path="${HOME}/.kube/config"

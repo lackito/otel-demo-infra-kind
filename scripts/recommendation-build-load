@@ -4,8 +4,8 @@ set -euo pipefail
 
 repository_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 apps_repository="${APPS_REPOSITORY:-${repository_root}/../otel-demo-apps}"
-cluster_context="kind-otel-demo-kind"
-cluster_name="otel-demo-kind"
+cluster_context="kind-otel-demo"
+cluster_name="otel-demo"
 image_repository="${RECOMMENDATION_IMAGE_REPOSITORY:-otel-demo/recommendation}"
 
 if [[ ! -f "${apps_repository}/apps/recommendation/Dockerfile" ]]; then

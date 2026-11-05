@@ -4,8 +4,8 @@ set -euo pipefail
 
 repository_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 apps_repository="${APPS_REPOSITORY:-${repository_root}/../otel-demo-apps}"
-cluster_context="kind-otel-demo-kind"
-cluster_name="otel-demo-kind"
+cluster_context="kind-otel-demo"
+cluster_name="otel-demo"
 workload_namespace="opentelemetry-demo"
 direct_image_repository="otel-demo/recommendation"
 registry_image_repository="ghcr.io/lackito/otel-demo-kind-recommendation"

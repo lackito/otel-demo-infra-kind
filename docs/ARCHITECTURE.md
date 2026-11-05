@@ -61,7 +61,7 @@ an HTTP listener; HTTPS requires additional listener and certificate setup.
 Gateway API expresses local traffic routing while the AWS counterpart uses
 Ingress and AWS Load Balancer Controller annotations.
 
-The cluster context is `kind-otel-demo-kind` in `~/.kube/config`. Repository
+The cluster context is `kind-otel-demo` in `~/.kube/config`. Repository
 scripts and Terraform target it explicitly; interactive commands should select
 it or use `--context` to avoid acting on a different cluster.
 
