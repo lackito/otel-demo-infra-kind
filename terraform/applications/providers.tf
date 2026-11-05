@@ -1,5 +1,5 @@
 locals {
-  cluster_context = "kind-otel-demo-local"
+  cluster_context = "kind-otel-demo-kind"
   kubeconfig_path = pathexpand("~/.kube/config")
 }
 

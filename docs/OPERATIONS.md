@@ -2,8 +2,8 @@
 
 [Overview](../README.md) · [Architecture](ARCHITECTURE.md) · [Troubleshooting](TROUBLESHOOTING.md)
 
-Run commands from `otel-demo-local` unless another repository is named.
-Repository scripts explicitly target `kind-otel-demo-local` in `~/.kube/config`.
+Run commands from `otel-demo-infra-kind` unless another repository is named.
+Repository scripts explicitly target `kind-otel-demo-kind` in `~/.kube/config`.
 
 ## 1. Check prerequisites
 
@@ -18,7 +18,7 @@ kind get clusters
 kubectl config current-context
 ```
 
-Argo CD needs access to `otel-demo-gitops-local` on GitHub. For the GHCR path,
+Argo CD needs access to `otel-demo-gitops-kind` on GitHub. For the GHCR path,
 the image referenced by its values file must already exist and be anonymously
 pullable. The current local release builds `linux/arm64`; an amd64 cluster
 needs a matching image, such as the direct-load path below.
@@ -26,11 +26,11 @@ needs a matching image, such as the direct-load path below.
 ## 2. Create or resume the environment
 
 Use the output of `kind get clusters` to choose **one** path below.
-`otel-demo-local` here means the kind cluster name, not the repository folder.
+`otel-demo-kind` here means the kind cluster name, not the repository folder.
 
 ### A. No local cluster exists
 
-If the output says `No kind clusters found`, or does not list `otel-demo-local`,
+If the output says `No kind clusters found`, or does not list `otel-demo-kind`,
 create the cluster and check it:
 
 ```bash
@@ -43,7 +43,7 @@ below. Do not run `platform-validate` before installing the platform.
 
 ### B. The local cluster already exists
 
-If the output lists `otel-demo-local`, check the cluster:
+If the output lists `otel-demo-kind`, check the cluster:
 
 ```bash
 make cluster-create
@@ -93,7 +93,7 @@ Then continue to [Validate the deployment](#3-validate-the-deployment).
 For manual inspection, explicitly select the local context:
 
 ```bash
-kubectl config use-context kind-otel-demo-local
+kubectl config use-context kind-otel-demo-kind
 kubectl get nodes
 kubectl get pods --all-namespaces
 helm list --all-namespaces
@@ -146,7 +146,7 @@ Telemetry storage is ephemeral, so workload recreation can discard history.
 For Argo CD, retrieve the initial admin password locally:
 
 ```bash
-kubectl --context kind-otel-demo-local -n argocd \
+kubectl --context kind-otel-demo-kind -n argocd \
   get secret argocd-initial-admin-secret \
   -o jsonpath='{.data.password}' | base64 --decode
 echo
@@ -155,7 +155,7 @@ echo
 Keep this running in a separate terminal:
 
 ```bash
-kubectl --context kind-otel-demo-local -n argocd \
+kubectl --context kind-otel-demo-kind -n argocd \
   port-forward service/argocd-server 8080:443
 ```
 
@@ -170,18 +170,18 @@ In `otel-demo-apps`, configure these repository secrets for release publishing:
 
 | Secret | Required access |
 |---|---|
-| `LOCAL_GITOPS_REPOSITORY_TOKEN` | Fine-grained token with Contents read/write for `otel-demo-gitops-local` |
+| `KIND_GITOPS_REPOSITORY_TOKEN` | Fine-grained token with Contents read/write for `otel-demo-gitops-kind` |
 | `GHCR_PAT` | Classic token owned by the publishing account with `write:packages` |
 
 If the GitOps repository was created after the token, add it to the token's
 selected repositories. These credentials are needed by CI, not for anonymous
 pulls of an already-published public image.
 
-1. Commit Recommendation changes on the `otel-demo-apps/local` branch.
-2. Push that branch and watch **Release recommendation service to local Kubernetes**.
-3. Confirm it publishes `ghcr.io/lackito/otel-demo-local-recommendation:<full-sha>`.
-4. Confirm its generated commit updates `otel-demo-gitops-local/main`.
-5. In Argo CD, refresh `otel-demo-local` and wait for `Synced` and `Healthy`.
+1. Commit Recommendation changes on the `otel-demo-apps/kind` branch.
+2. Push that branch and watch **Release recommendation service to kind**.
+3. Confirm it publishes `ghcr.io/lackito/otel-demo-kind-recommendation:<full-sha>`.
+4. Confirm its generated commit updates `otel-demo-gitops-kind/main`.
+5. In Argo CD, refresh `otel-demo-kind` and wait for `Synced` and `Healthy`.
 6. Run `make application-validate` and `make recommendation-validate` here.
 
 The workflow verifies anonymous image access before updating GitOps. If that
@@ -194,8 +194,8 @@ Use this for a faster development loop or a native-architecture image:
 1. Commit source changes in the sibling `otel-demo-apps` checkout so the image
    receives a distinct Git-based tag; the commit can remain local.
 2. Run `make recommendation-build-load` here. It builds for the kind node's
-   architecture and loads `otel-demo/recommendation:local-<short-sha>`.
-3. In `otel-demo-gitops-local/applications/otel-demo/values.yaml`, set the
+   architecture and loads `otel-demo/recommendation:kind-<short-sha>`.
+3. In `otel-demo-gitops-kind/applications/otel-demo/values.yaml`, set the
    Recommendation image override's **repository and tag** to the printed values.
 4. Commit and push that values change; Argo CD cannot see unpushed local files.
 5. Wait for reconciliation, then run `make recommendation-validate` here.
@@ -206,7 +206,7 @@ local release and let its generated commit restore the GHCR repository/tag.
 
 ### Verify the complete delivery trail
 
-Run in `otel-demo-gitops-local`:
+Run in `otel-demo-gitops-kind`:
 
 ```bash
 git fetch origin main

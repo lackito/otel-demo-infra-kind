@@ -2,7 +2,7 @@
 
 set -euo pipefail
 
-cluster_context="kind-otel-demo-local"
+cluster_context="kind-otel-demo-kind"
 
 if ! kubectl config get-contexts "${cluster_context}" --no-headers >/dev/null 2>&1; then
   echo "Expected context ${cluster_context} does not exist in the standard kubeconfig." >&2
