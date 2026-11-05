@@ -2,8 +2,8 @@
 
 set -euo pipefail
 
-cluster_context="kind-otel-demo-local"
-application_name="otel-demo-local"
+cluster_context="kind-otel-demo-kind"
+application_name="otel-demo-kind"
 application_namespace="argocd"
 workload_namespace="opentelemetry-demo"
 timeout_seconds=900

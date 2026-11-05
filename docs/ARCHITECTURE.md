@@ -9,7 +9,7 @@
 | kind cluster and host port mappings | This repository's cluster scripts and `kind/cluster.yaml` |
 | Gateway API CRDs, NGINX Gateway Fabric, Argo CD | `terraform/platform` |
 | Argo CD Application registration | `terraform/applications` using `kubernetes_manifest` |
-| Local Helm values, Gateway, and HTTPRoute | `otel-demo-gitops-local` |
+| Local Helm values, Gateway, and HTTPRoute | `otel-demo-gitops-kind` |
 | Application source and release workflows | `otel-demo-apps` |
 | Application workload reconciliation | Argo CD |
 
@@ -27,10 +27,10 @@ workstation. AWS and local environments use separate desired-state repositories.
 The durable local release path is implemented in `otel-demo-apps`:
 
 ```text
-Push Recommendation changes to local branch
+Push Recommendation changes to kind branch
     → GitHub Actions builds linux/arm64 with the triggering commit tag
     → GHCR publishes the image
-    → CI updates otel-demo-gitops-local/main
+    → CI updates otel-demo-gitops-kind/main
     → Argo CD reconciles kind workloads
 ```
 
@@ -61,7 +61,7 @@ an HTTP listener; HTTPS requires additional listener and certificate setup.
 Gateway API expresses local traffic routing while the AWS counterpart uses
 Ingress and AWS Load Balancer Controller annotations.
 
-The cluster context is `kind-otel-demo-local` in `~/.kube/config`. Repository
+The cluster context is `kind-otel-demo-kind` in `~/.kube/config`. Repository
 scripts and Terraform target it explicitly; interactive commands should select
 it or use `--context` to avoid acting on a different cluster.
 
@@ -76,8 +76,8 @@ it or use `--context` to avoid acting on a different cluster.
 | Terraform state | S3 | Local files |
 | Terraform stages | Bootstrap, infrastructure, platform, applications | Platform, applications; scripts create kind |
 | Application registration | `kubernetes_manifest` | `kubernetes_manifest` |
-| Source branch and registry | `otel-demo-apps/main`, ECR | `otel-demo-apps/local`, GHCR |
-| Desired state | `otel-demo-gitops` | `otel-demo-gitops-local` |
+| Source branch and registry | `otel-demo-apps/main`, ECR | `otel-demo-apps/kind`, GHCR |
+| Desired state | `otel-demo-gitops-aws` | `otel-demo-gitops-kind` |
 | Workload owner | Argo CD | Argo CD |
 | Feature flags | `flagd` and editor sidecar | `flagd`; editor sidecar disabled |
 

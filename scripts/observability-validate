@@ -2,8 +2,8 @@
 
 set -euo pipefail
 
-cluster_context="kind-otel-demo-local"
-cluster_name="otel-demo-local"
+cluster_context="kind-otel-demo-kind"
+cluster_name="otel-demo-kind"
 workload_namespace="opentelemetry-demo"
 demo_url="http://otel-demo.localhost"
 soak_seconds="${OBSERVABILITY_SOAK_SECONDS:-0}"
@@ -162,7 +162,7 @@ sample_memory() {
 application_state="$(
   kubectl \
     --context "${cluster_context}" \
-    get application otel-demo-local \
+    get application otel-demo-kind \
     --namespace argocd \
     --output jsonpath='{.status.sync.status} {.status.health.status}'
 )"

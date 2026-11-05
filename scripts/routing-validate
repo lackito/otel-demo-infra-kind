@@ -2,7 +2,7 @@
 
 set -euo pipefail
 
-cluster_context="kind-otel-demo-local"
+cluster_context="kind-otel-demo-kind"
 workload_namespace="opentelemetry-demo"
 route_name="otel-demo"
 gateway_name="otel-demo"

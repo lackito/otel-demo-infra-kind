@@ -4,8 +4,8 @@ set -euo pipefail
 
 repository_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 apps_repository="${APPS_REPOSITORY:-${repository_root}/../otel-demo-apps}"
-cluster_context="kind-otel-demo-local"
-cluster_name="otel-demo-local"
+cluster_context="kind-otel-demo-kind"
+cluster_name="otel-demo-kind"
 image_repository="${RECOMMENDATION_IMAGE_REPOSITORY:-otel-demo/recommendation}"
 
 if [[ ! -f "${apps_repository}/apps/recommendation/Dockerfile" ]]; then
@@ -20,7 +20,7 @@ if ! kubectl config get-contexts "${cluster_context}" --no-headers >/dev/null 2>
 fi
 
 apps_revision="$(git -C "${apps_repository}" rev-parse HEAD)"
-image_tag="${RECOMMENDATION_IMAGE_TAG:-local-${apps_revision:0:12}}"
+image_tag="${RECOMMENDATION_IMAGE_TAG:-kind-${apps_revision:0:12}}"
 image_reference="${image_repository}:${image_tag}"
 
 node_architecture="$(

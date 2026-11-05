@@ -1,4 +1,4 @@
-# OpenTelemetry Demo on Local Kubernetes
+# otel-demo-infra-kind
 
 A platform engineering lab that deploys the upstream OpenTelemetry Demo on
 **kind** using **Terraform, Helm, Argo CD, and GitOps**. It provides a local
@@ -47,6 +47,10 @@ that a cluster is running.
 ## Related repositories
 
 - [otel-demo-apps](https://github.com/lackito/otel-demo-apps): application source and release workflows.
-- [otel-demo-gitops-local](https://github.com/lackito/otel-demo-gitops-local): local values and routing manifests.
+- [otel-demo-gitops-kind](https://github.com/lackito/otel-demo-gitops-kind): local values and routing manifests.
 - [otel-demo-infra-aws](https://github.com/lackito/otel-demo-infra-aws): AWS infrastructure and platform.
-- [otel-demo-gitops](https://github.com/lackito/otel-demo-gitops): AWS desired state.
+- [otel-demo-gitops-aws](https://github.com/lackito/otel-demo-gitops-aws): AWS desired state.
+
+## Environment naming
+
+See the shared [naming and migration guide](https://github.com/lackito/otel-demo-apps/blob/main/docs/NAMING.md) for repository names, runtime identities, and the coordinated rename sequence.

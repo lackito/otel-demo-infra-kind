@@ -7,7 +7,7 @@
 
 Start the Docker-compatible runtime, then run `make prerequisites`.
 If the named cluster exists but its context is missing, `make cluster-create`
-restores it. Select `kind-otel-demo-local` for interactive kubectl commands.
+restores it. Select `kind-otel-demo-kind` for interactive kubectl commands.
 Use `make validate` before checking platform or workload health.
 
 ## Application registration fails because the CRD is missing
@@ -37,8 +37,8 @@ not as a routine fresh-cluster step.
 Check the deployed image and pod events with the explicit local context:
 
 ```bash
-kubectl --context kind-otel-demo-local -n opentelemetry-demo get pods
-kubectl --context kind-otel-demo-local -n opentelemetry-demo get events --sort-by=.lastTimestamp
+kubectl --context kind-otel-demo-kind -n opentelemetry-demo get pods
+kubectl --context kind-otel-demo-kind -n opentelemetry-demo get events --sort-by=.lastTimestamp
 ```
 
 For GHCR, confirm that the package is public and the referenced full-SHA tag
@@ -53,8 +53,8 @@ HEAD with the direct-loaded tag.
 
 ## GitOps changes do not appear
 
-Commit and push local values to `otel-demo-gitops-local/main`. Inspect the
-`otel-demo-local` Application in Argo CD for repository or sync errors, then
+Commit and push local values to `otel-demo-gitops-kind/main`. Inspect the
+`otel-demo-kind` Application in Argo CD for repository or sync errors, then
 compare the desired image with the Deployment. Run `make application-validate`.
 Argo CD cannot read uncommitted workstation files.
 
@@ -65,7 +65,7 @@ Use HTTP, not HTTPS; host port 443 alone does not configure a TLS listener.
 To isolate application health from Gateway routing:
 
 ```bash
-kubectl --context kind-otel-demo-local -n opentelemetry-demo \
+kubectl --context kind-otel-demo-kind -n opentelemetry-demo \
   port-forward service/frontend-proxy 18080:8080
 ```
 

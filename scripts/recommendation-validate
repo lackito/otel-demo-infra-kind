@@ -4,11 +4,12 @@ set -euo pipefail
 
 repository_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 apps_repository="${APPS_REPOSITORY:-${repository_root}/../otel-demo-apps}"
-cluster_context="kind-otel-demo-local"
-cluster_name="otel-demo-local"
+cluster_context="kind-otel-demo-kind"
+cluster_name="otel-demo-kind"
 workload_namespace="opentelemetry-demo"
 direct_image_repository="otel-demo/recommendation"
-registry_image_repository="ghcr.io/lackito/otel-demo-local-recommendation"
+registry_image_repository="ghcr.io/lackito/otel-demo-kind-recommendation"
+bootstrap_image_repository="ghcr.io/lackito/otel-demo-local-recommendation"
 demo_url="http://otel-demo.localhost"
 
 if ! kubectl config get-contexts "${cluster_context}" --no-headers >/dev/null 2>&1; then
@@ -18,12 +19,12 @@ if ! kubectl config get-contexts "${cluster_context}" --no-headers >/dev/null 2>
 fi
 
 apps_revision="$(git -C "${apps_repository}" rev-parse HEAD)"
-direct_image="${direct_image_repository}:local-${apps_revision:0:12}"
+direct_image="${direct_image_repository}:kind-${apps_revision:0:12}"
 
 application_state="$(
   kubectl \
     --context "${cluster_context}" \
-    get application otel-demo-local \
+    get application otel-demo-kind \
     --namespace argocd \
     --output jsonpath='{.status.sync.status} {.status.health.status}'
 )"
@@ -55,16 +56,16 @@ if [[ "${deployed_image}" == "${direct_image}" ]]; then
     exit 1
   fi
   delivery_mode="direct kind load"
-elif [[ "${deployed_image}" == "${registry_image_repository}:"* ]]; then
-  registry_tag="${deployed_image#"${registry_image_repository}:"}"
+elif [[ "${deployed_image}" == "${registry_image_repository}:"* || "${deployed_image}" == "${bootstrap_image_repository}:"* ]]; then
+  registry_tag="${deployed_image##*:}"
   if [[ ! "${registry_tag}" =~ ^[0-9a-f]{40}$ ]]; then
     echo "Registry image tag is not a full Git commit SHA: ${registry_tag}" >&2
     exit 1
   fi
-  delivery_mode="local CI and GHCR"
+  delivery_mode="kind CI and GHCR"
 else
   echo "Recommendation uses ${deployed_image}." >&2
-  echo "Expected ${direct_image} or ${registry_image_repository}:<full-git-sha>." >&2
+  echo "Expected ${direct_image} or a verified kind/bootstrap GHCR image with a full Git SHA." >&2
   exit 1
 fi
 
