@@ -1,56 +1,41 @@
 # otel-demo-infra-kind
 
-A platform engineering lab that deploys the upstream OpenTelemetry Demo on
-**kind** using **Terraform, Helm, Argo CD, and GitOps**. It provides a local
-counterpart to the AWS EKS implementation.
-
-The engineering work focuses on platform provisioning, application delivery,
-routing, and validation. The demo application comes from OpenTelemetry.
+Run the [OpenTelemetry Demo](https://opentelemetry.io/docs/demo/) locally with
+kind, Terraform, Helm, and Argo CD.
 
 ## How it works
 
 ```text
-Application commit → GitHub Actions → GHCR image
-                           ↓
-                    GitOps values commit
-                           ↓
-                        Argo CD → kind workloads
+Application change on kind → GitHub Actions → GHCR image
+                                  ↓
+                           GitOps values commit
+                                  ↓
+                               Argo CD → kind
 ```
 
-Terraform installs Gateway API, NGINX Gateway Fabric, and Argo CD, then
-registers the Application in a separate stage. Argo CD owns the workloads.
-Direct image loading into kind is also available for development.
+Ad, Product Catalog, and Recommendation each have an independent release
+workflow. Terraform installs Gateway API, NGINX Gateway Fabric, and Argo CD,
+then registers the demo Application in a separate stage. Argo CD manages the
+workloads from `otel-demo-gitops-kind/main`.
 
 ## Start here
 
 | Goal | Guide |
-|---|---|
-| Resume a test run or build a fresh environment | [Operations](docs/OPERATIONS.md) |
-| Understand ownership, delivery choices, and AWS differences | [Architecture](docs/ARCHITECTURE.md) |
-| Diagnose a failed check or known limitation | [Troubleshooting](docs/TROUBLESHOOTING.md) |
+| --- | --- |
+| Create, validate, access, or destroy the environment | [Operations](docs/OPERATIONS.md) |
+| Understand ownership, delivery, and telemetry | [Architecture](docs/ARCHITECTURE.md) |
+| Diagnose a failed check | [Troubleshooting](docs/TROUBLESHOOTING.md) |
 
-The operations guide covers prerequisites, deployment, validation, image
-updates, browser access, and teardown in execution order.
-
-## What is checked
-
-[CI](.github/workflows/ci.yml) checks Terraform configuration and formatting,
-YAML and shell syntax, and GitHub Actions workflows. Runtime validation checks
-cluster readiness, routing, application delivery, and real metrics and traces.
-A 15-minute observability soak checks for restarts and pod replacement.
-
-The local GHCR release currently builds for arm64. Telemetry storage is
-ephemeral, and the optional `flagd-ui` editor is disabled after an arm64 OOM
-investigation. See the guides for details; successful static CI does not prove
-that a cluster is running.
+The cluster is `otel-demo`; kind generates context `kind-otel-demo`.
+The local release workflows publish ARM64 images. Telemetry storage is ephemeral.
+CI checks configuration and syntax; runtime checks verify the deployed system.
 
 ## Related repositories
 
-- [otel-demo-apps](https://github.com/lackito/otel-demo-apps): application source and release workflows.
-- [otel-demo-gitops-kind](https://github.com/lackito/otel-demo-gitops-kind): local values and routing manifests.
+- [otel-demo-apps](https://github.com/lackito/otel-demo-apps): source and release workflows.
+- [otel-demo-gitops-kind](https://github.com/lackito/otel-demo-gitops-kind): local values and routing.
 - [otel-demo-infra-aws](https://github.com/lackito/otel-demo-infra-aws): AWS infrastructure and platform.
-- [otel-demo-gitops-aws](https://github.com/lackito/otel-demo-gitops-aws): AWS desired state.
+- [otel-demo-gitops-aws](https://github.com/lackito/otel-demo-gitops-aws): AWS application values.
 
-## Environment naming
-
-See the shared [naming and migration guide](https://github.com/lackito/otel-demo-apps/blob/main/docs/NAMING.md) for repository names, runtime identities, and the coordinated rename sequence.
+See [Names and repositories](https://github.com/lackito/otel-demo-apps/blob/main/docs/NAMING.md)
+for the shared naming reference.

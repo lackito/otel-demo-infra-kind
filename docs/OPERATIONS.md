@@ -1,73 +1,33 @@
-# Local Kubernetes Operations
+# Local operations
 
 [Overview](../README.md) · [Architecture](ARCHITECTURE.md) · [Troubleshooting](TROUBLESHOOTING.md)
 
 Run commands from `otel-demo-infra-kind` unless another repository is named.
-Repository scripts explicitly target `kind-otel-demo` in `~/.kube/config`.
+Scripts use context `kind-otel-demo` in `~/.kube/config`.
 
-## 1. Check prerequisites
+## Prerequisites
 
 Install Docker with a running compatible runtime, kind, kubectl, Helm,
-Terraform, Make, curl, and jq. Keep `otel-demo-apps` beside this repository:
-Recommendation build and validation scripts read it by default. Set
-`APPS_REPOSITORY` if it lives elsewhere.
+Terraform, Make, curl, and jq. Keep `otel-demo-apps` beside this repository for
+the Recommendation helpers, or set `APPS_REPOSITORY` to its path.
 
 ```bash
 make prerequisites
-kind get clusters
-kubectl config current-context
 ```
 
-Argo CD needs access to `otel-demo-gitops-kind` on GitHub. For the GHCR path,
-the image referenced by its values file must already exist and be anonymously
-pullable. The current local release builds `linux/arm64`; an amd64 cluster
-needs a matching image, such as the direct-load path below.
+Argo CD needs access to `otel-demo-gitops-kind` on GitHub. All three referenced
+GHCR images must exist and be public. Release workflows build ARM64 images;
+AMD64 nodes need images built for their architecture.
 
-## 2. Create or resume the environment
-
-Use the output of `kind get clusters` to choose **one** path below.
-`otel-demo` here means the kind cluster name, not the repository folder.
-
-### A. No local cluster exists
-
-If the output says `No kind clusters found`, or does not list `otel-demo`,
-create the cluster and check it:
+## Create or resume the environment
 
 ```bash
 make cluster-create
 make validate
 ```
 
-Once both succeed, continue to **Install the platform and register the application**
-below. Do not run `platform-validate` before installing the platform.
-
-### B. The local cluster already exists
-
-If the output lists `otel-demo`, check the cluster:
-
-```bash
-make cluster-create
-make validate
-```
-
-Despite its name, `cluster-create` reuses an existing cluster and restores a
-missing kubeconfig context; it does not recreate the cluster.
-
-If you previously installed the platform, run `make platform-validate`.
-If it passes and the application was registered, continue to
-[Validate the deployment](#3-validate-the-deployment).
-If the platform has not been installed, use the installation sequence below.
-If it is installed but fails validation, use [Troubleshooting](TROUBLESHOOTING.md)
-before changing or recreating anything.
-
-### Install the platform and register the application
-
-Start here after the cluster passes `make validate`. Use an existing published
-GHCR image in local GitOps values, or prepare a direct-loaded image as described
-under [Update an image](#5-update-an-image).
-Review each Terraform plan and confirmation prompt before applying.
-
-Install the platform:
+`cluster-create` reuses an existing `otel-demo` cluster and restores a missing
+context. On a fresh cluster, install the platform first:
 
 ```bash
 make platform-init
@@ -76,162 +36,137 @@ make platform-apply
 make platform-validate
 ```
 
-After platform validation succeeds, register the application. If the platform
-was already healthy and only registration is missing, start at this block:
+Review each plan before applying. Once the platform is healthy, register the
+application:
 
 ```bash
-make applications-init
-make applications-plan
-make applications-apply
+make application-init
+make application-plan
+make application-apply
 ```
 
-Keep these stages separate: Argo CD and its CRDs must exist before Terraform
-can plan the Application registration. For direct loading, build/load the
-image and push the matching GitOps values before `applications-apply`.
-Then continue to [Validate the deployment](#3-validate-the-deployment).
+The stages stay separate because Argo CD's CRDs must exist before Terraform can
+plan the Application. On an existing installation, validate first and apply only
+when a configuration change is needed.
 
-For manual inspection, explicitly select the local context:
-
-```bash
-kubectl config use-context kind-otel-demo
-kubectl get nodes
-kubectl get pods --all-namespaces
-helm list --all-namespaces
-```
-
-## 3. Validate the deployment
+## Validate the deployment
 
 ```bash
 make application-validate
 make routing-validate
-make recommendation-validate
 make observability-validate
 ```
 
 | Check | What it verifies |
-|---|---|
+| --- | --- |
 | `validate` | Cluster readiness |
 | `platform-validate` | Installed platform components |
-| `application-validate` | Argo CD sync/health, Gateway, deployments, and Recommendation/Ad/Product Catalog image sources |
-| `routing-validate` | Route attachment, backend references, demo response, and hostname isolation |
-| `recommendation-validate` | Deployed image format/source, rollout, and Recommendation API data |
-| `observability-validate` | Backend rollouts, OOM status, actual metrics/traces, and Grafana health/datasources |
+| `application-validate` | Argo sync/health, Gateway conditions, Deployment rollouts, and all three custom service images |
+| `routing-validate` | Route attachment, backend references, store response, and hostname isolation |
+| `recommendation-validate` | Recommendation image source/tag, rollout, and API data |
+| `observability-validate` | Backend health, active Prometheus metrics, Recommendation traces, and Grafana Prometheus/Jaeger data sources |
 
-For sustained-load validation:
+Use `make recommendation-validate` for the additional Recommendation checks.
+Use `make observability-soak` for a 15-minute check that also fails on
+observability pod replacement or container restart.
 
-```bash
-make observability-soak
-```
+For each release, match the full source SHA from its workflow with the GHCR tag,
+GitOps override, and image printed by `application-validate`. If comparing
+running image IDs, compare platform digests: a tag can point to an image index
+with a different digest.
 
-This runs for 15 minutes and fails if an observability pod is replaced or a
-container restart count changes. Ready pods alone do not prove telemetry is
-flowing. The observability check queries active Prometheus `up` series,
-Recommendation traces in Jaeger, and Grafana's Prometheus/Jaeger datasources.
+Health checks alone do not prove telemetry for every service. Exercise the
+store, find Ad, Product Catalog, and Recommendation traces in Jaeger, inspect
+metrics in Grafana, and search each service's logs in the OpenSearch data source.
+The automated observability check does not query stored logs.
 
-The Recommendation validator accepts GHCR tags shaped as full commit SHAs;
-compare the tag with the intended release SHA yourself. Direct-load validation
-compares against the sibling application repository's current commit.
-
-## 4. Open the interfaces
+## Open the interfaces
 
 | Interface | URL |
-|---|---|
-| Demo | http://otel-demo.localhost |
+| --- | --- |
+| Store | http://otel-demo.localhost/ |
 | Grafana | http://otel-demo.localhost/grafana/ |
 | Jaeger | http://otel-demo.localhost/jaeger/ui/ |
 
-Prometheus stays cluster-internal; use Grafana for browser-based queries.
-Telemetry storage is ephemeral, so workload recreation can discard history.
-
-For Argo CD, retrieve the initial admin password locally:
+Retrieve the initial Argo CD admin password:
 
 ```bash
 kubectl --context kind-otel-demo -n argocd \
-  get secret argocd-initial-admin-secret \
-  -o jsonpath='{.data.password}' | base64 --decode
+  get secret argocd-initial-admin-secret -o jsonpath='{.data.password}' | base64 --decode
 echo
 ```
 
-Keep this running in a separate terminal:
+Keep this running in another terminal:
 
 ```bash
-kubectl --context kind-otel-demo -n argocd \
-  port-forward service/argocd-server 8080:443
+kubectl --context kind-otel-demo -n argocd port-forward svc/argocd-server 8080:443
 ```
 
-Open `https://localhost:8080`, accept the local certificate warning, and sign
-in as `admin` using the initial password unless you have changed it.
+Open `https://localhost:8080`, accept the local certificate warning, and sign in
+as `admin`, using the initial password unless you have changed it.
 
-## 5. Update an image
+## Release a service through GHCR
 
-### GitHub Actions and GHCR
+In `otel-demo-apps`, configure `KIND_GITOPS_REPOSITORY_TOKEN` with Contents
+read/write access to `otel-demo-gitops-kind`. Publishing uses the automatic
+`GITHUB_TOKEN` with `packages: write`; no registry PAT or infrastructure token
+is required.
 
-In `otel-demo-apps`, configure these repository secrets for release publishing:
+1. Create a feature branch from updated `main` in `otel-demo-apps`.
+2. Make the service change, merge it into `kind`, and push `kind`.
+3. Watch the affected service's release job: Ad, Product Catalog, or Recommendation.
+4. Confirm it publishes `ghcr.io/lackito/otel-demo-kind-<service>:<full-sha>` and updates that service in `otel-demo-gitops-kind/main`.
+5. Wait for Argo CD `otel-demo-kind` to be `Synced` and `Healthy`.
+6. Run `make application-validate` and verify telemetry.
 
-| Secret | Required access |
-|---|---|
-| `KIND_GITOPS_REPOSITORY_TOKEN` | Fine-grained token with Contents read/write for `otel-demo-gitops-kind` |
+If public-access verification fails, make the package public and rerun the job.
+For the complete branch routine, see
+[Branching](https://github.com/lackito/otel-demo-apps/blob/main/docs/BRANCHING.md).
 
-GHCR publication uses the automatic `GITHUB_TOKEN` with workflow
-`packages: write`; it does not require a registry PAT secret.
+## Direct-load Recommendation
 
-If the GitOps repository was created after the token, add it to the token's
-selected repositories. These credentials are needed by CI, not for anonymous
-pulls of an already-published public image.
-
-1. Commit Recommendation changes on the `otel-demo-apps/kind` branch.
-2. Push that branch and watch **Release recommendation service to kind**.
-3. Confirm it publishes `ghcr.io/lackito/otel-demo-kind-recommendation:<full-sha>`.
-4. Confirm its generated commit updates `otel-demo-gitops-kind/main`.
-5. In Argo CD, refresh `otel-demo-kind` and wait for `Synced` and `Healthy`.
-6. Run `make application-validate` and `make recommendation-validate` here.
-
-The workflow verifies anonymous image access before updating GitOps. If that
-step fails, make the GHCR package public and rerun the workflow.
-
-### Direct kind loading
-
-Use this for a faster development loop or a native-architecture image:
-
-1. Commit source changes in the sibling `otel-demo-apps` checkout so the image
-   receives a distinct Git-based tag; the commit can remain local.
-2. Run `make recommendation-build-load` here. It builds for the kind node's
-   architecture and loads `otel-demo/recommendation:kind-<short-sha>`.
-3. In `otel-demo-gitops-kind/applications/otel-demo/values.yaml`, set the
-   Recommendation image override's **repository and tag** to the printed values.
-4. Commit and push that values change; Argo CD cannot see unpushed local files.
-5. Wait for reconciliation, then run `make recommendation-validate` here.
-
-The build command does not update GitOps or trigger a rollout itself. Reload
-the image after recreating a cluster. To return to GHCR delivery, publish a
-local release and let its generated commit restore the GHCR repository/tag.
-
-### Verify the complete delivery trail
-
-Run in `otel-demo-gitops-kind`:
+For a local Recommendation build, commit source changes in the sibling app
+checkout so the build has a distinct revision, then run:
 
 ```bash
-git fetch origin main
-git log --oneline -3 origin/main -- applications/otel-demo/values.yaml
-git show origin/main:applications/otel-demo/values.yaml
+make recommendation-build-load
 ```
 
-For a CI release, look for `chore(recommendation): deploy <commit-sha>` and
-match the full tag to the triggering application commit and published image.
-In Argo CD, inspect **History and Rollback** and the Recommendation Deployment.
-Its deployed image must match that release. Save the run URL, GitOps commit,
-and deployment evidence when recording a test run.
+Set Recommendation's repository and tag in kind GitOps values to the printed
+values. Commit and push that values change, wait for Argo CD, and run
+`make recommendation-validate`. The helper does not update GitOps itself.
+Reload the image after cluster recreation. A successful kind release restores
+the GHCR image override.
 
-## 6. Tear down
+## Inspect local logs
 
-Destroy the application registration and platform before deleting the cluster:
+In Grafana Explore, choose OpenSearch and search `otel-logs-*`, filtering by
+service. To inspect the index directly, keep this running:
 
 ```bash
-make applications-destroy
+kubectl --context kind-otel-demo -n opentelemetry-demo port-forward svc/opensearch 9200:9200
+```
+
+Then run in another terminal:
+
+```bash
+curl 'http://localhost:9200/_cluster/health?pretty'
+curl 'http://localhost:9200/_cat/indices/otel-logs-*?v'
+curl 'http://localhost:9200/otel-logs-*/_search?size=1&pretty'
+```
+
+OpenSearch storage is ephemeral. Application stdout is also available through
+`kubectl logs`.
+
+## Tear down
+
+```bash
+make application-destroy
 make platform-destroy
 make cluster-destroy
 ```
 
-Deleting the cluster discards workloads and ephemeral data. The destroy script
-refuses deletion while either local Terraform state still lists resources.
-Keep Terraform state until the managed resources have been destroyed.
+Cluster deletion removes remaining workloads and ephemeral data. The destroy
+script refuses cluster deletion while local Terraform state still lists
+application or platform resources. Keep state until managed resources have
+been destroyed.
