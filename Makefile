@@ -2,7 +2,7 @@ SHELL := /bin/bash
 
 .PHONY: prerequisites cluster-create cluster-destroy validate \
 	platform-init platform-plan platform-apply platform-validate platform-destroy \
-	applications-adopt applications-init applications-plan applications-apply applications-destroy \
+	application-init application-plan application-apply application-destroy \
 	application-validate routing-validate recommendation-build-load \
 	recommendation-validate observability-validate observability-soak
 
@@ -33,19 +33,16 @@ platform-validate:
 platform-destroy:
 	terraform -chdir=terraform/platform destroy
 
-applications-adopt:
-	./scripts/applications-adopt
-
-applications-init:
+application-init:
 	terraform -chdir=terraform/applications init
 
-applications-plan:
+application-plan:
 	terraform -chdir=terraform/applications plan
 
-applications-apply:
+application-apply:
 	terraform -chdir=terraform/applications apply
 
-applications-destroy:
+application-destroy:
 	terraform -chdir=terraform/applications destroy
 
 application-validate:
