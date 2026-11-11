@@ -13,7 +13,7 @@ variable "helm_chart" {
 variable "helm_chart_version" {
   description = "Pinned OpenTelemetry Demo Helm chart version."
   type        = string
-  default     = "0.38.4"
+  default     = "0.42.6"
 }
 
 variable "gitops_repo" {

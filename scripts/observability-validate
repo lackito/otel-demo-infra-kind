@@ -83,7 +83,7 @@ validate_apis() {
     kubectl \
       --context "${cluster_context}" \
       get --raw \
-      "/api/v1/namespaces/${workload_namespace}/services/http:jaeger-query:16686/proxy/jaeger/ui/api/services"
+      "/api/v1/namespaces/${workload_namespace}/services/http:jaeger:16686/proxy/jaeger/ui/api/services"
   )"
 
   if ! jq --exit-status '.data | index("recommendation") != null' \
@@ -96,7 +96,7 @@ validate_apis() {
     kubectl \
       --context "${cluster_context}" \
       get --raw \
-      "/api/v1/namespaces/${workload_namespace}/services/http:jaeger-query:16686/proxy/jaeger/ui/api/traces?service=recommendation&limit=1&lookback=1h"
+      "/api/v1/namespaces/${workload_namespace}/services/http:jaeger:16686/proxy/jaeger/ui/api/traces?service=recommendation&limit=1&lookback=1h"
   )"
 
   if ! jq --exit-status '.data | length > 0' <<< "${jaeger_traces}" >/dev/null; then
