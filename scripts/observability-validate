@@ -139,20 +139,20 @@ validate_apis() {
 }
 
 sample_memory() {
-  docker exec \
-    "${cluster_name}-control-plane" \
-    crictl stats \
-    --output json |
-    jq --raw-output '
+  kubectl --context "${cluster_context}" get --raw \
+    "/api/v1/nodes/${cluster_name}-control-plane/proxy/stats/summary" |
+    jq --exit-status --raw-output --arg namespace "${workload_namespace}" '
       [
-        .stats[]
-        | select(.attributes.labels["io.kubernetes.pod.namespace"] == "opentelemetry-demo")
-        | select(.attributes.labels["io.kubernetes.pod.name"] | test("^(grafana|jaeger|otel-collector|prometheus)-"))
+        .pods[]
+        | select(.podRef.namespace == $namespace)
+        | select(.podRef.name | test("^(grafana|jaeger|otel-collector|prometheus)-"))
+        | .containers[]
         | {
-            name: .attributes.metadata.name,
-            mib: ((.memory.workingSetBytes.value | tonumber) / 1048576 | floor)
+            name,
+            mib: ((.memory.workingSetBytes | tonumber) / 1048576 | floor)
           }
       ]
+      | if length == 0 then error("No observability container memory samples") else . end
       | sort_by(.name)
       | map("\(.name)=\(.mib)Mi")
       | join(" ")
@@ -184,7 +184,8 @@ validate_no_oom
 validate_apis
 
 baseline_restarts="$(restart_snapshot)"
-echo "Memory: $(sample_memory)"
+memory="$(sample_memory)"
+echo "Memory: ${memory}"
 
 elapsed_seconds=0
 while ((elapsed_seconds < soak_seconds)); do
@@ -209,7 +210,8 @@ while ((elapsed_seconds < soak_seconds)); do
   fi
 
   validate_apis
-  echo "Soak ${elapsed_seconds}/${soak_seconds}s memory: $(sample_memory)"
+  memory="$(sample_memory)"
+  echo "Soak ${elapsed_seconds}/${soak_seconds}s memory: ${memory}"
 done
 
 echo "Milestone 8 observability validation passed."
