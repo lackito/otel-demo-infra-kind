@@ -15,8 +15,8 @@ cluster-create: prerequisites
 cluster-destroy:
 	./scripts/cluster-destroy
 
-validate:
-	./scripts/validate
+cluster-validate:
+	./scripts/cluster-validate
 
 platform-init:
 	terraform -chdir=terraform/platform init

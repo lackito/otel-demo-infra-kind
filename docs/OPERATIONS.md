@@ -23,7 +23,7 @@ AMD64 nodes need images built for their architecture.
 
 ```bash
 make cluster-create
-make validate
+make cluster-validate
 ```
 
 `cluster-create` reuses an existing `otel-demo` cluster and restores a missing
@@ -59,7 +59,7 @@ make observability-validate
 
 | Check | What it verifies |
 | --- | --- |
-| `validate` | Cluster readiness |
+| `cluster-validate` | Cluster readiness |
 | `platform-validate` | Installed platform components |
 | `application-validate` | Argo sync/health, Gateway conditions, Deployment rollouts, and all three custom service images |
 | `routing-validate` | Route attachment, backend references, store response, and hostname isolation |
